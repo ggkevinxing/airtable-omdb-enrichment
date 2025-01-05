@@ -1,4 +1,4 @@
-import { sanitizeAlphanumericWithSpaces } from "@nerdware/ts-string-helpers";
+import { isValidNumeric } from "@nerdware/ts-string-helpers";
 import Airtable, { Table, FieldSet, Record, Attachment } from "airtable";
 import { partition } from "lodash";
 import {
@@ -96,7 +96,9 @@ export class EnrichmentService {
 
     if (!runtime && omdbEntry.Runtime) {
       const runtimeNum = this.omdbService.runtimeToNumber(omdbEntry.Runtime);
-      updateData["runtime (minutes)"] = runtimeNum;
+      if (isValidNumeric(runtimeNum)) {
+        updateData["runtime (minutes)"] = runtimeNum;
+      }
     }
 
     // shows can sometimes end and get an end year or be rebooted and become ongoing again
@@ -127,15 +129,23 @@ export class EnrichmentService {
     let workingTitle = record.get("title") as string;
 
     const format = record.get("format"); // is one of "feature film", "television show", "documentary", "television special", "short film", "anthology film"
-    let resultType = "movie"; // omdb format type either "movie", "series", "episode"
+    let resultType: string | undefined = "movie"; // omdb format type either "movie", "series", "episode"
 
     let releaseYear = undefined;
 
     // if it's a TV show, we want to remove all "season" and fluff after the title of the show
-    if (format == "television show") {
-      const seasonRegex = /: (season)*(series)*(volume)* \d*.*/gi;
-      workingTitle = workingTitle.replace(seasonRegex, "");
-      resultType = "series";
+    switch (format) {
+      case "television show":
+        const seasonRegex = /: (season)*(series)*(volume)* \d*.*/gi;
+        workingTitle = workingTitle.replace(seasonRegex, "");
+        resultType = "series";
+        break;
+      case "feature film":
+        resultType = "movie";
+      // for everything else, err on side of caution and don't filter out
+      default:
+        resultType = undefined;
+        break;
     }
 
     // if there's a (<year>) in the title we want to remove it for the title but preserve that in our search as the release year
@@ -147,12 +157,26 @@ export class EnrichmentService {
     }
 
     // get rid of special characters that might throw the search off
-    workingTitle = sanitizeAlphanumericWithSpaces(workingTitle)
-      .trim()
-      .toLowerCase();
+    workingTitle = workingTitle.trim().toLowerCase();
 
-    const searchResult = await this.omdbService.maybeGetEntry(
+    return this.maybeUpdateRecordWithWorkingTitle(
+      false,
+      record,
       workingTitle,
+      resultType,
+      releaseYear
+    );
+  }
+
+  private async maybeUpdateRecordWithWorkingTitle(
+    hasRetried: boolean,
+    record: Record<FieldSet>,
+    title: string,
+    resultType?: string,
+    releaseYear?: string
+  ): Promise<void> {
+    const searchResult = await this.omdbService.maybeGetEntry(
+      title,
       resultType,
       releaseYear
     );
@@ -161,7 +185,7 @@ export class EnrichmentService {
       // hopefully the search just turns up with one thing. hopefully.
       if (searchResult.length > 1) {
         console.log(
-          `Search for ${resultType} ${workingTitle} is ambiguous, picking first one anyways`
+          `Search for ${resultType} ${title} is ambiguous, picking first one anyways`
         );
       }
 
@@ -179,8 +203,23 @@ export class EnrichmentService {
       }
     } else {
       console.log(
-        `Search couldn't find ${resultType} ${workingTitle} and release year ${releaseYear}`
+        `Search couldn't find ${resultType} ${title} and release year ${releaseYear}`
       );
+      if (!hasRetried) {
+        // remove non-alphanumeric and non-hyphen (sometimes useful in titles) from title
+        const newWorkingTitle = title
+          .replace(/[^a-zA-Z0-9]/g, " ")
+          .replace(/\s{2,}/g, " ");
+        console.log(`retrying with ${newWorkingTitle} instead of ${title}`);
+        if (newWorkingTitle != title)
+          return this.maybeUpdateRecordWithWorkingTitle(
+            true,
+            record,
+            newWorkingTitle,
+            resultType,
+            releaseYear
+          );
+      }
     }
   }
 }
