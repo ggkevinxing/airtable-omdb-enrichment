@@ -12,7 +12,9 @@ export interface MockRecordOptions {
   title?: string;
 }
 
-export function createMockRecord(options: MockRecordOptions = {}): Record<FieldSet> {
+export function createMockRecord(
+  options: MockRecordOptions = {}
+): Record<FieldSet> {
   const {
     id = 'rec123',
     fields = {},
@@ -22,16 +24,16 @@ export function createMockRecord(options: MockRecordOptions = {}): Record<FieldS
     hasReleaseYear = false,
     reviews = { kev: '👍', net: '👍' },
     format = 'feature film',
-    title = 'Test Movie'
+    title = 'Test Movie',
   } = options;
 
   const mockFields: { [key: string]: any } = {
-    'id': id,
-    'title': title,
-    'format': format,
+    id: id,
+    title: title,
+    format: format,
     'kev review': reviews.kev,
     'net review': reviews.net,
-    ...fields
+    ...fields,
   };
 
   if (hasImdbId) {
@@ -39,11 +41,13 @@ export function createMockRecord(options: MockRecordOptions = {}): Record<FieldS
   }
 
   if (hasCover) {
-    mockFields['cover'] = [{
-      id: 'att123',
-      url: 'https://example.com/existing-cover.jpg',
-      filename: 'cover.jpg'
-    }] as Attachment[];
+    mockFields['cover'] = [
+      {
+        id: 'att123',
+        url: 'https://example.com/existing-cover.jpg',
+        filename: 'cover.jpg',
+      },
+    ] as Attachment[];
   }
 
   if (hasRuntime) {
@@ -58,7 +62,7 @@ export function createMockRecord(options: MockRecordOptions = {}): Record<FieldS
     id: id,
     get: jest.fn((field: string) => mockFields[field]),
     updateFields: jest.fn().mockResolvedValue(undefined),
-    fields: mockFields
+    fields: mockFields,
   } as any;
 
   return mockRecord;

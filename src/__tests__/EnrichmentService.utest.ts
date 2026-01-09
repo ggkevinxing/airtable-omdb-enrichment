@@ -1,11 +1,14 @@
 import { Record, FieldSet } from 'airtable';
 import { OmdbGetResponse, OmdbSearchResult } from '../omdb/OmdbModels';
-import { createMockRecord, MockRecordOptions } from './factories/AirtableRecordFactory';
-import { 
-  createMockOmdbGetResponse, 
+import {
+  createMockRecord,
+  MockRecordOptions,
+} from './factories/AirtableRecordFactory';
+import {
+  createMockOmdbGetResponse,
   createMockOmdbSearchResult,
   createMockOmdbSearchResponse,
-  MockOmdbOptions 
+  MockOmdbOptions,
 } from './factories/OmdbResponseFactory';
 
 // Mock dependencies first before importing the module
@@ -13,11 +16,11 @@ jest.mock('../EnvSetup', () => ({
   AIRTABLE_API_KEY: 'test-airtable-key',
   AIRTABLE_BASE_ID: 'test-base-id',
   AIRTABLE_TABLE_ID: 'test-table-id',
-  OMDB_API_KEY: 'test-omdb-key'
+  OMDB_API_KEY: 'test-omdb-key',
 }));
 
-jest.mock('lodash', () => ({ 
-  partition: jest.fn() 
+jest.mock('lodash', () => ({
+  partition: jest.fn(),
 }));
 
 // Create mocks for Airtable
@@ -25,7 +28,7 @@ const mockSelect = jest.fn().mockReturnValue({ all: jest.fn() });
 const mockTable = jest.fn().mockReturnValue({ select: mockSelect });
 const mockBase = jest.fn().mockReturnValue(mockTable);
 const mockAirtable = jest.fn().mockImplementation(() => ({
-  base: mockBase
+  base: mockBase,
 }));
 
 jest.mock('airtable', () => {
@@ -49,7 +52,7 @@ describe('EnrichmentService', () => {
     mockOmdbService = {
       getFullEntryById: jest.fn(),
       maybeGetEntry: jest.fn(),
-      runtimeToNumber: jest.fn()
+      runtimeToNumber: jest.fn(),
     } as any;
 
     // Create service instance with mocked dependencies
@@ -78,7 +81,7 @@ describe('EnrichmentService', () => {
     it('should setup Airtable client with correct API key', () => {
       new EnrichmentService();
       expect(mockAirtable).toHaveBeenCalledWith({
-        apiKey: 'test-airtable-key'
+        apiKey: 'test-airtable-key',
       });
     });
 
@@ -93,31 +96,36 @@ describe('EnrichmentService', () => {
     it('should partition records by IMDB ID presence', async () => {
       const recordsWithImdbId = [
         createMockRecord({ hasImdbId: true, id: 'rec1' }),
-        createMockRecord({ hasImdbId: true, id: 'rec2' })
+        createMockRecord({ hasImdbId: true, id: 'rec2' }),
       ];
       const recordsWithoutImdbId = [
         createMockRecord({ hasImdbId: false, id: 'rec3' }),
-        createMockRecord({ hasImdbId: false, id: 'rec4' })
+        createMockRecord({ hasImdbId: false, id: 'rec4' }),
       ];
       const allRecords = [...recordsWithImdbId, ...recordsWithoutImdbId];
 
       mockSelect().all.mockResolvedValue(allRecords);
-      (partition as jest.Mock).mockReturnValue([recordsWithImdbId, recordsWithoutImdbId]);
+      (partition as jest.Mock).mockReturnValue([
+        recordsWithImdbId,
+        recordsWithoutImdbId,
+      ]);
 
       await enrichmentService.enrichMetadata();
 
-      expect(partition).toHaveBeenCalledWith(
-        allRecords,
-        expect.any(Function)
-      );
+      expect(partition).toHaveBeenCalledWith(allRecords, expect.any(Function));
     });
 
     it('should process records with IMDB IDs', async () => {
-      const recordsWithImdbId: Record<FieldSet>[] = [createMockRecord({ hasImdbId: true })];
+      const recordsWithImdbId: Record<FieldSet>[] = [
+        createMockRecord({ hasImdbId: true }),
+      ];
       const recordsWithoutImdbId: Record<FieldSet>[] = [];
 
       mockSelect().all.mockResolvedValue(recordsWithImdbId);
-      (partition as jest.Mock).mockReturnValue([recordsWithImdbId, recordsWithoutImdbId]);
+      (partition as jest.Mock).mockReturnValue([
+        recordsWithImdbId,
+        recordsWithoutImdbId,
+      ]);
 
       // Mock the OMDB service to return data
       const mockOmdbResponse = createMockOmdbGetResponse();
@@ -125,15 +133,22 @@ describe('EnrichmentService', () => {
 
       await enrichmentService.enrichMetadata();
 
-      expect(mockOmdbService.getFullEntryById).toHaveBeenCalledWith('tt1234567');
+      expect(mockOmdbService.getFullEntryById).toHaveBeenCalledWith(
+        'tt1234567'
+      );
     });
 
     it('should process records without IMDB IDs', async () => {
       const recordsWithImdbId: Record<FieldSet>[] = [];
-      const recordsWithoutImdbId: Record<FieldSet>[] = [createMockRecord({ hasImdbId: false, title: 'Test Movie' })];
+      const recordsWithoutImdbId: Record<FieldSet>[] = [
+        createMockRecord({ hasImdbId: false, title: 'Test Movie' }),
+      ];
 
       mockSelect().all.mockResolvedValue(recordsWithoutImdbId);
-      (partition as jest.Mock).mockReturnValue([recordsWithImdbId, recordsWithoutImdbId]);
+      (partition as jest.Mock).mockReturnValue([
+        recordsWithImdbId,
+        recordsWithoutImdbId,
+      ]);
 
       // Mock search to return results
       const mockSearchResult = createMockOmdbSearchResult();
@@ -165,11 +180,11 @@ describe('EnrichmentService', () => {
     });
 
     it('should skip update when cover is up to date and data is complete', async () => {
-      mockRecord = createMockRecord({ 
-        hasImdbId: true, 
-        hasCover: true, 
-        hasRuntime: true, 
-        hasReleaseYear: true 
+      mockRecord = createMockRecord({
+        hasImdbId: true,
+        hasCover: true,
+        hasRuntime: true,
+        hasReleaseYear: true,
       });
 
       await enrichmentService['maybeUpdateRecordWithImdbId'](mockRecord);
@@ -184,7 +199,9 @@ describe('EnrichmentService', () => {
 
       await enrichmentService['maybeUpdateRecordWithImdbId'](mockRecord);
 
-      expect(mockOmdbService.getFullEntryById).toHaveBeenCalledWith('tt1234567');
+      expect(mockOmdbService.getFullEntryById).toHaveBeenCalledWith(
+        'tt1234567'
+      );
     });
 
     it('should handle OMDB API failure gracefully', async () => {
@@ -200,7 +217,10 @@ describe('EnrichmentService', () => {
       mockOmdbService.getFullEntryById.mockResolvedValue(mockOmdbResponse);
 
       // Spy on the private method
-      const updateSpy = jest.spyOn(enrichmentService as any, 'updateRecordWithOmdbEntry');
+      const updateSpy = jest.spyOn(
+        enrichmentService as any,
+        'updateRecordWithOmdbEntry'
+      );
       updateSpy.mockResolvedValue(undefined);
 
       await enrichmentService['maybeUpdateRecordWithImdbId'](mockRecord);
@@ -219,43 +239,52 @@ describe('EnrichmentService', () => {
     });
 
     it('should update IMDB ID when missing', async () => {
-      await enrichmentService['updateRecordWithOmdbEntry'](mockRecord, mockOmdbResponse);
+      await enrichmentService['updateRecordWithOmdbEntry'](
+        mockRecord,
+        mockOmdbResponse
+      );
 
       expect(mockRecord.updateFields).toHaveBeenCalledWith(
         expect.objectContaining({
-          'imdb id': 'tt1234567'
+          'imdb id': 'tt1234567',
         }),
         { typecast: true }
       );
     });
 
     it('should update cover when poster exists and reviews are great', async () => {
-      mockRecord = createMockRecord({ 
+      mockRecord = createMockRecord({
         hasImdbId: false,
-        reviews: { kev: '🥰', net: '🥰' }
+        reviews: { kev: '🥰', net: '🥰' },
       });
 
-      await enrichmentService['updateRecordWithOmdbEntry'](mockRecord, mockOmdbResponse);
+      await enrichmentService['updateRecordWithOmdbEntry'](
+        mockRecord,
+        mockOmdbResponse
+      );
 
       expect(mockRecord.updateFields).toHaveBeenCalledWith(
         expect.objectContaining({
-          'cover': expect.arrayContaining([
+          cover: expect.arrayContaining([
             expect.objectContaining({
-              url: 'https://example.com/poster.jpg'
-            })
-          ])
+              url: 'https://example.com/poster.jpg',
+            }),
+          ]),
         }),
         { typecast: true }
       );
     });
 
     it('should not update cover when reviews are not unanimously great', async () => {
-      mockRecord = createMockRecord({ 
+      mockRecord = createMockRecord({
         hasImdbId: false,
-        reviews: { kev: '👍', net: '🥰' }
+        reviews: { kev: '👍', net: '🥰' },
       });
 
-      await enrichmentService['updateRecordWithOmdbEntry'](mockRecord, mockOmdbResponse);
+      await enrichmentService['updateRecordWithOmdbEntry'](
+        mockRecord,
+        mockOmdbResponse
+      );
 
       const updateCall = mockRecord.updateFields.mock.calls[0]?.[0];
       if (updateCall) {
@@ -266,12 +295,15 @@ describe('EnrichmentService', () => {
     it('should update runtime when missing and valid', async () => {
       mockOmdbService.runtimeToNumber.mockReturnValue(120);
 
-      await enrichmentService['updateRecordWithOmdbEntry'](mockRecord, mockOmdbResponse);
+      await enrichmentService['updateRecordWithOmdbEntry'](
+        mockRecord,
+        mockOmdbResponse
+      );
 
       expect(mockOmdbService.runtimeToNumber).toHaveBeenCalledWith('120 min');
       expect(mockRecord.updateFields).toHaveBeenCalledWith(
         expect.objectContaining({
-          'runtime (minutes)': 120
+          'runtime (minutes)': 120,
         }),
         { typecast: true }
       );
@@ -280,7 +312,10 @@ describe('EnrichmentService', () => {
     it('should not update runtime when invalid', async () => {
       mockOmdbService.runtimeToNumber.mockReturnValue(NaN);
 
-      await enrichmentService['updateRecordWithOmdbEntry'](mockRecord, mockOmdbResponse);
+      await enrichmentService['updateRecordWithOmdbEntry'](
+        mockRecord,
+        mockOmdbResponse
+      );
 
       const updateCall = mockRecord.updateFields.mock.calls[0]?.[0];
       if (updateCall) {
@@ -289,20 +324,23 @@ describe('EnrichmentService', () => {
     });
 
     it('should update release year when missing', async () => {
-      await enrichmentService['updateRecordWithOmdbEntry'](mockRecord, mockOmdbResponse);
+      await enrichmentService['updateRecordWithOmdbEntry'](
+        mockRecord,
+        mockOmdbResponse
+      );
 
       expect(mockRecord.updateFields).toHaveBeenCalledWith(
         expect.objectContaining({
-          'release year': '2023'
+          'release year': '2023',
         }),
         { typecast: true }
       );
     });
 
     it('should update release year when different', async () => {
-      mockRecord = createMockRecord({ 
+      mockRecord = createMockRecord({
         hasImdbId: false,
-        hasReleaseYear: true
+        hasReleaseYear: true,
       });
       // Override release year in mock's get method
       mockRecord.get.mockImplementation((field: string) => {
@@ -310,25 +348,31 @@ describe('EnrichmentService', () => {
         return mockRecord.fields[field];
       });
 
-      await enrichmentService['updateRecordWithOmdbEntry'](mockRecord, mockOmdbResponse);
+      await enrichmentService['updateRecordWithOmdbEntry'](
+        mockRecord,
+        mockOmdbResponse
+      );
 
       expect(mockRecord.updateFields).toHaveBeenCalledWith(
         expect.objectContaining({
-          'release year': '2023'
+          'release year': '2023',
         }),
         { typecast: true }
       );
     });
 
     it('should not update when no fields need updating', async () => {
-      mockRecord = createMockRecord({ 
+      mockRecord = createMockRecord({
         hasImdbId: true,
         hasCover: true,
         hasRuntime: true,
-        hasReleaseYear: true
+        hasReleaseYear: true,
       });
 
-      await enrichmentService['updateRecordWithOmdbEntry'](mockRecord, mockOmdbResponse);
+      await enrichmentService['updateRecordWithOmdbEntry'](
+        mockRecord,
+        mockOmdbResponse
+      );
 
       expect(mockRecord.updateFields).not.toHaveBeenCalled();
     });
@@ -340,12 +384,12 @@ describe('EnrichmentService', () => {
         const mockRecord = createMockRecord({
           hasImdbId: false,
           format: 'television show',
-          title: 'Test Show: Season 1'
+          title: 'Test Show: Season 1',
         });
 
         const mockSearchResult = createMockOmdbSearchResult({ type: 'series' });
         const mockOmdbResponse = createMockOmdbGetResponse({ type: 'series' });
-        
+
         mockOmdbService.maybeGetEntry.mockResolvedValue([mockSearchResult]);
         mockOmdbService.getFullEntryById.mockResolvedValue(mockOmdbResponse);
 
@@ -364,12 +408,12 @@ describe('EnrichmentService', () => {
         const mockRecord = createMockRecord({
           hasImdbId: false,
           format: 'feature film',
-          title: 'Test Movie'
+          title: 'Test Movie',
         });
 
         const mockSearchResult = createMockOmdbSearchResult({ type: 'movie' });
         const mockOmdbResponse = createMockOmdbGetResponse({ type: 'movie' });
-        
+
         mockOmdbService.maybeGetEntry.mockResolvedValue([mockSearchResult]);
         mockOmdbService.getFullEntryById.mockResolvedValue(mockOmdbResponse);
 
@@ -388,12 +432,12 @@ describe('EnrichmentService', () => {
         const mockRecord = createMockRecord({
           hasImdbId: false,
           format: 'feature film',
-          title: 'Test Movie (2023)'
+          title: 'Test Movie (2023)',
         });
 
         const mockSearchResult = createMockOmdbSearchResult();
         const mockOmdbResponse = createMockOmdbGetResponse();
-        
+
         mockOmdbService.maybeGetEntry.mockResolvedValue([mockSearchResult]);
         mockOmdbService.getFullEntryById.mockResolvedValue(mockOmdbResponse);
 
@@ -412,12 +456,12 @@ describe('EnrichmentService', () => {
         const mockRecord = createMockRecord({
           hasImdbId: false,
           format: 'documentary',
-          title: 'Test Documentary'
+          title: 'Test Documentary',
         });
 
         const mockSearchResult = createMockOmdbSearchResult();
         const mockOmdbResponse = createMockOmdbGetResponse();
-        
+
         mockOmdbService.maybeGetEntry.mockResolvedValue([mockSearchResult]);
         mockOmdbService.getFullEntryById.mockResolvedValue(mockOmdbResponse);
 
@@ -442,7 +486,7 @@ describe('EnrichmentService', () => {
     it('should handle successful search with single result', async () => {
       const mockSearchResult = createMockOmdbSearchResult();
       const mockOmdbResponse = createMockOmdbGetResponse();
-      
+
       mockOmdbService.maybeGetEntry.mockResolvedValue([mockSearchResult]);
       mockOmdbService.getFullEntryById.mockResolvedValue(mockOmdbResponse);
 
@@ -459,16 +503,18 @@ describe('EnrichmentService', () => {
         'movie',
         '2023'
       );
-      expect(mockOmdbService.getFullEntryById).toHaveBeenCalledWith('tt1234567');
+      expect(mockOmdbService.getFullEntryById).toHaveBeenCalledWith(
+        'tt1234567'
+      );
     });
 
     it('should handle ambiguous search results', async () => {
       const mockSearchResults = [
         createMockOmdbSearchResult({ imdbId: 'tt1234567' }),
-        createMockOmdbSearchResult({ imdbId: 'tt7654321' })
+        createMockOmdbSearchResult({ imdbId: 'tt7654321' }),
       ];
       const mockOmdbResponse = createMockOmdbGetResponse();
-      
+
       mockOmdbService.maybeGetEntry.mockResolvedValue(mockSearchResults);
       mockOmdbService.getFullEntryById.mockResolvedValue(mockOmdbResponse);
 
@@ -481,7 +527,9 @@ describe('EnrichmentService', () => {
       );
 
       // Should pick first result and log about ambiguity
-      expect(mockOmdbService.getFullEntryById).toHaveBeenCalledWith('tt1234567');
+      expect(mockOmdbService.getFullEntryById).toHaveBeenCalledWith(
+        'tt1234567'
+      );
     });
 
     it('should handle failed search with retry', async () => {
@@ -496,7 +544,7 @@ describe('EnrichmentService', () => {
       await enrichmentService['maybeUpdateRecordWithWorkingTitle'](
         false,
         mockRecord,
-        'test-movie!',  // Title with special character
+        'test-movie!', // Title with special character
         'movie',
         '2023'
       );

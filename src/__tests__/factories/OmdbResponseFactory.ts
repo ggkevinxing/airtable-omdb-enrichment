@@ -11,7 +11,9 @@ export interface MockOmdbOptions {
   error?: string;
 }
 
-export function createMockOmdbGetResponse(options: MockOmdbOptions = {}): OmdbGetResponse {
+export function createMockOmdbGetResponse(
+  options: MockOmdbOptions = {}
+): OmdbGetResponse {
   const {
     imdbId = 'tt1234567',
     title = 'Test Movie',
@@ -20,7 +22,7 @@ export function createMockOmdbGetResponse(options: MockOmdbOptions = {}): OmdbGe
     poster = 'https://example.com/poster.jpg',
     type = 'movie',
     response = 'True',
-    error
+    error,
   } = options;
 
   return {
@@ -47,17 +49,19 @@ export function createMockOmdbGetResponse(options: MockOmdbOptions = {}): OmdbGe
     imdbVotes: '1,000',
     DVD: '01 Jan 2023',
     BoxOffice: '$100,000,000',
-    Website: 'https://example.com'
+    Website: 'https://example.com',
   };
 }
 
-export function createMockOmdbSearchResult(options: MockOmdbOptions = {}): OmdbSearchResult {
+export function createMockOmdbSearchResult(
+  options: MockOmdbOptions = {}
+): OmdbSearchResult {
   const {
     imdbId = 'tt1234567',
     title = 'Test Movie',
     year = '2023',
     poster = 'https://example.com/poster.jpg',
-    type = 'movie'
+    type = 'movie',
   } = options;
 
   return {
@@ -65,7 +69,7 @@ export function createMockOmdbSearchResult(options: MockOmdbOptions = {}): OmdbS
     Title: title,
     Year: year,
     Poster: poster,
-    Type: type
+    Type: type,
   };
 }
 
@@ -76,6 +80,6 @@ export function createMockOmdbSearchResponse(
   return {
     Search: results,
     totalResults: totalResults,
-    Response: 'True'
+    Response: 'True',
   };
 }

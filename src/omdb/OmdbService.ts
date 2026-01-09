@@ -1,5 +1,5 @@
-import { OmdbClient } from "./OmdbClient";
-import { OmdbGetResponse, OmdbSearchResult } from "./OmdbModels";
+import { OmdbClient } from './OmdbClient';
+import { OmdbGetResponse, OmdbSearchResult } from './OmdbModels';
 
 export class OmdbService {
   constructor(private omdbClient = new OmdbClient()) {}
@@ -8,7 +8,7 @@ export class OmdbService {
     imdbId: string
   ): Promise<OmdbGetResponse | undefined> {
     const getResult = await this.omdbClient.get(imdbId);
-    return getResult.Response === "True" ? getResult : undefined;
+    return getResult.Response === 'True' ? getResult : undefined;
   }
 
   public async maybeGetEntry(
@@ -26,7 +26,7 @@ export class OmdbService {
 
   // runtime strings are in the form of "X min", e.g. "90 min"
   public runtimeToNumber(runtime: string): number {
-    const [numString, _] = runtime.split(" ");
+    const [numString] = runtime.split(' ');
     return Number(numString);
   }
 }

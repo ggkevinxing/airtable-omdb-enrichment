@@ -6,8 +6,8 @@ module.exports = {
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
-    '!src/**/__tests__/**'
+    '!src/**/__tests__/**',
   ],
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
-  setupFilesAfterEnv: ['<rootDir>/src/__tests__/testSetup.ts']
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/testSetup.ts'],
 };
