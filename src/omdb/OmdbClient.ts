@@ -1,8 +1,8 @@
-import axios, { AxiosInstance } from "axios";
-import { OMDB_API_KEY } from "../EnvSetup";
-import { OmdbGetResponse, OmdbSearchResponse } from "./OmdbModels";
+import axios, { AxiosInstance } from 'axios';
+import { OMDB_API_KEY } from '../EnvSetup';
+import { OmdbGetResponse, OmdbSearchResponse } from './OmdbModels';
 
-const OMDB_BASE_URL = "https://www.omdbapi.com/";
+const OMDB_BASE_URL = 'https://www.omdbapi.com/';
 
 export class OmdbClient {
   protected axios: AxiosInstance;
@@ -33,7 +33,7 @@ export class OmdbClient {
 
     return this.axios
       .request({
-        method: "GET",
+        method: 'GET',
         params,
       })
       .then((res) => res.data);
@@ -48,7 +48,7 @@ export class OmdbClient {
 
     return this.axios
       .request({
-        method: "GET",
+        method: 'GET',
         params,
       })
       .then((res) => res.data);

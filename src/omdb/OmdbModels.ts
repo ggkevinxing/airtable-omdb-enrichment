@@ -1,4 +1,4 @@
-type ResultType = "movie" | "series" | "episode";
+type ResultType = 'movie' | 'series' | 'episode';
 
 export interface OmdbSearchResult {
   Title: string;
