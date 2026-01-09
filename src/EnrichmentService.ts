@@ -142,6 +142,7 @@ export class EnrichmentService {
         break;
       case "feature film":
         resultType = "movie";
+        break;
       // for everything else, err on side of caution and don't filter out
       default:
         resultType = undefined;

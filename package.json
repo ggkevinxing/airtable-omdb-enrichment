@@ -4,7 +4,11 @@
   "description": "",
   "main": "main.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:unit": "jest **/*.utest.ts",
+    "test:integration": "jest **/*.itest.ts",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "compile": "tsc"
   },
   "keywords": [],
@@ -21,11 +25,14 @@
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@types/airtable": "^0.10.0",
+    "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.14",
     "@types/node": "^22.10.5",
     "eslint": "^8.57.1",
     "globals": "^15.14.0",
     "gts": "^6.0.2",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "tslib": "^2.8.1",
     "typescript": "^5.7.2",
